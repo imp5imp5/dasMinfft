@@ -1,0 +1,56 @@
+
+IF (NOT DAS_MINFFT_INCLUDED)
+    SET(DAS_MINFFT_INCLUDED TRUE)
+    MESSAGE(STATUS "dasMinfft module included.")
+
+	SET(DAS_MINFFT_DIR ${CMAKE_SOURCE_DIR}/modules/dasMinfft)
+	SET(MINFFT_INCLUDE_DIR ${DAS_MINFFT_DIR}/minfft)
+
+    LIST(APPEND CMAKE_MODULE_PATH ${DAS_MINFFT_DIR})
+
+	# libDasModuleMinfft
+	SET(DAS_MINFFT_MODULE_SRC
+		${DAS_MINFFT_DIR}/src/dasMinfft.h
+		${DAS_MINFFT_DIR}/src/dasMinfft.cpp
+  	${DAS_MINFFT_DIR}/minfft/minfft.c
+  	${DAS_MINFFT_DIR}/minfft/minfft.h
+	)
+
+	ADD_MODULE_LIB(libDasModuleMinfft)
+	ADD_MODULE_CPP(Minfft)
+	# ADD_MODULE_NATIVE(MINFFT_boost)
+	ADD_LIBRARY(libDasModuleMinfft ${DAS_MINFFT_MODULE_SRC} ${DAS_MINFFT_MODULE_PLATFORM_SRC})
+    target_compile_definitions(libDasModuleMinfft PUBLIC MINFFT_SINGLE)
+	TARGET_LINK_LIBRARIES(libDasModuleMinfft ${MINFFT_LIBRARIES})
+	ADD_DEPENDENCIES(libDasModuleMinfft libDaScript)
+	TARGET_INCLUDE_DIRECTORIES(libDasModuleMinfft PUBLIC ${MINFFT_INCLUDE_DIR})
+
+	SETUP_CPP11(libDasModuleMinfft)
+
+
+	# MINFFT AOT
+	add_custom_target(MINFFT_AOT)
+	SET(MINFFT_GENERATED_SRC)
+	DAS_AOT("${DAS_MINFFT_DIR}/examples/minfft_example_sinus.das" MINFFT_GENERATED_SRC MINFFT_AOT daScript)
+
+	# daslib
+	DAS_AOT("daslib/random.das" MINFFT_GENERATED_SRC MINFFT_AOT daScript)
+	DAS_AOT("daslib/math_boost.das" MINFFT_GENERATED_SRC MINFFT_AOT daScript)
+	SOURCE_GROUP_FILES("aot stub" MINFFT_GENERATED_SRC)
+
+	# now, the demo
+	SET(MINFFT_SRC
+		${DAS_MINFFT_DIR}/examples/minfftAot.cpp
+		${DAS_MODULES_NEED_INC}
+	)
+	SOURCE_GROUP_FILES("main" MINFFT_SRC)
+	add_executable(minfftAot ${MINFFT_SRC} ${MINFFT_GENERATED_SRC})
+	TARGET_LINK_LIBRARIES(minfftAot libDaScript libDasModuleUriparser libUriParser Threads::Threads)
+	ADD_DEPENDENCIES(minfftAot libDaScript libDasModuleUriparser libUriParser)
+	ADD_DEPENDENCIES(minfftAot MINFFT_AOT dasAotStub)
+	TARGET_INCLUDE_DIRECTORIES(minfftAot PUBLIC ${MINFFT_INCLUDE_DIR})
+	SETUP_CPP11(minfftAot)
+	SETUP_LTO(minfftAot)
+	ADD_EXAMPLE(minfftAot)
+
+ENDIF()

@@ -40,7 +40,7 @@ void fft_real_forward(const TArray<float> & real_signal, TArray<float2> & comple
   }
 
   minfft_aux * aux = allocate_fft_aux(fft_real_aux_pointers, real_signal.size, minfft_mkaux_realdft_1d);
-  int complexOutSize = real_signal.size / 2 + 1;
+  auto complexOutSize = real_signal.size / 2 + 1;
   if (complex_frequencies.size != complexOutSize)
     builtin_array_resize(complex_frequencies, complexOutSize, complex_frequencies.stride, context);
 
@@ -84,19 +84,19 @@ void fft_calculate_log_magnitudes(const TArray<float2> & complex_frequencies, TA
   if (!complex_frequencies.size)
     return;
 
-  int len = complex_frequencies.size;
-  float offset = log2f(len);
+  auto len = complex_frequencies.size;
+  float offset = log2f(float(len));
 
   float2 * __restrict c = (float2 *)complex_frequencies.data;
   float * __restrict m = (float *)magnitudes.data;
-  for (int i = 0; i < len; i++, m++, c++)
+  for (uint32_t i = 0; i < len; i++, m++, c++)
     *m = log2(sqr(c->x) + sqr(c->y) + 1e-10f) - offset;
 }
 
 
 void fft_real_inverse(const TArray<float2> & complex_frequencies, TArray<float> & real_signal, Context * context)
 {
-  int p2 = complex_frequencies.size - 1;
+  auto p2 = complex_frequencies.size - 1;
   if (complex_frequencies.size <= 0 || ((p2 + 1) & p2) == 0)
   {
     //print_error("fft_real_inverse: Length of input array must be (power of 2)+1, but length = %d)", int(complex_frequencies.size));
@@ -104,7 +104,7 @@ void fft_real_inverse(const TArray<float2> & complex_frequencies, TArray<float> 
   }
 
   minfft_aux * aux = allocate_fft_aux(fft_real_aux_pointers, p2 * 2, minfft_mkaux_realdft_1d);
-  int realOutSize = p2 * 2;
+  auto realOutSize = p2 * 2;
   if (complex_frequencies.size != realOutSize)
     builtin_array_resize(real_signal, realOutSize, real_signal.stride, context);
 

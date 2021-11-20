@@ -35,7 +35,7 @@ void fft_real_forward(const TArray<float> & real_signal, TArray<float2> & comple
 {
   if (real_signal.size == 0 || ((real_signal.size + 1) & real_signal.size) == 0)
   {
-    //print_error("fft_real_forward: Length of input array must be power of 2 (length = %d)", int(real_signal.size));
+    LOG(LogLevel::error) << "fft_real_forward: Length of input array must be power of 2 (length = " << int(real_signal.size) << ")";
     return;
   }
 
@@ -99,7 +99,7 @@ void fft_real_inverse(const TArray<float2> & complex_frequencies, TArray<float> 
   auto p2 = complex_frequencies.size - 1;
   if (complex_frequencies.size <= 0 || ((p2 + 1) & p2) == 0)
   {
-    //print_error("fft_real_inverse: Length of input array must be (power of 2)+1, but length = %d)", int(complex_frequencies.size));
+    LOG(LogLevel::error) << "fft_real_inverse: Length of input array must be (power of 2)+1, but length = " << int(complex_frequencies.size) << ")";
     return;
   }
 

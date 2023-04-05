@@ -53,4 +53,11 @@ IF ((NOT DAS_MINFFT_INCLUDED) AND ((NOT ${DAS_MINFFT_DISABLED}) OR (NOT DEFINED 
 	SETUP_LTO(minfftAot)
 	ADD_EXAMPLE(minfftAot)
 
+    file(GLOB DAS_MINFFT_EXAMPLES
+		${DAS_MINFFT_DIR}/examples/*.das
+    )
+    install(FILES ${DAS_MINFFT_EXAMPLES}
+        DESTINATION examples/minfft
+    )
+
 ENDIF()

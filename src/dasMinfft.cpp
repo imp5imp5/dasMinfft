@@ -31,7 +31,7 @@ inline minfft_aux * allocate_fft_aux(das_hash_map<int, minfft_aux *> & container
   return it->second;
 }
 
-void fft_real_forward(const TArray<float> & real_signal, TArray<float2> & complex_frequencies, Context * context)
+void fft_real_forward(const TArray<float> & real_signal, TArray<float2> & complex_frequencies, Context * context, LineInfoArg * at)
 {
   if (real_signal.size == 0 || ((real_signal.size + 1) & real_signal.size) == 0)
   {
@@ -42,16 +42,16 @@ void fft_real_forward(const TArray<float> & real_signal, TArray<float2> & comple
   minfft_aux * aux = allocate_fft_aux(fft_real_aux_pointers, real_signal.size, minfft_mkaux_realdft_1d);
   auto complexOutSize = real_signal.size / 2 + 1;
   if (complex_frequencies.size != complexOutSize)
-    builtin_array_resize(complex_frequencies, complexOutSize, complex_frequencies.stride, context);
+    builtin_array_resize(complex_frequencies, complexOutSize, complex_frequencies.stride, context, at);
 
   minfft_realdft((minfft_real *)real_signal.data, (minfft_cmpl *)complex_frequencies.data, aux);
 }
 
 
-void fft_calculate_magnitudes(const TArray<float2> & complex_frequencies, TArray<float> & magnitudes, Context * context)
+void fft_calculate_magnitudes(const TArray<float2> & complex_frequencies, TArray<float> & magnitudes, Context * context, LineInfoArg * at)
 {
   if (magnitudes.size != complex_frequencies.size)
-    builtin_array_resize(magnitudes, complex_frequencies.size, magnitudes.stride, context);
+    builtin_array_resize(magnitudes, complex_frequencies.size, magnitudes.stride, context, at);
 
   float2 * __restrict c = (float2 *)complex_frequencies.data;
   float * __restrict m = (float *)magnitudes.data;
@@ -59,10 +59,10 @@ void fft_calculate_magnitudes(const TArray<float2> & complex_frequencies, TArray
     *m = sqrtf(sqr(c->x) + sqr(c->y));
 }
 
-void fft_calculate_normalized_magnitudes(const TArray<float2> & complex_frequencies, TArray<float> & magnitudes, Context * context)
+void fft_calculate_normalized_magnitudes(const TArray<float2> & complex_frequencies, TArray<float> & magnitudes, Context * context, LineInfoArg * at)
 {
   if (magnitudes.size != complex_frequencies.size)
-    builtin_array_resize(magnitudes, complex_frequencies.size, magnitudes.stride, context);
+    builtin_array_resize(magnitudes, complex_frequencies.size, magnitudes.stride, context, at);
 
   if (!complex_frequencies.size)
     return;
@@ -76,10 +76,10 @@ void fft_calculate_normalized_magnitudes(const TArray<float2> & complex_frequenc
     *m = sqrtf(sqr(c->x) + sqr(c->y)) * inv;
 }
 
-void fft_calculate_log_magnitudes(const TArray<float2> & complex_frequencies, TArray<float> & magnitudes, Context * context)
+void fft_calculate_log_magnitudes(const TArray<float2> & complex_frequencies, TArray<float> & magnitudes, Context * context, LineInfoArg * at)
 {
   if (magnitudes.size != complex_frequencies.size)
-    builtin_array_resize(magnitudes, complex_frequencies.size, magnitudes.stride, context);
+    builtin_array_resize(magnitudes, complex_frequencies.size, magnitudes.stride, context, at);
 
   if (!complex_frequencies.size)
     return;
@@ -94,7 +94,7 @@ void fft_calculate_log_magnitudes(const TArray<float2> & complex_frequencies, TA
 }
 
 
-void fft_real_inverse(const TArray<float2> & complex_frequencies, TArray<float> & real_signal, Context * context)
+void fft_real_inverse(const TArray<float2> & complex_frequencies, TArray<float> & real_signal, Context * context, LineInfoArg * at)
 {
   auto p2 = complex_frequencies.size - 1;
   if (complex_frequencies.size <= 0 || ((p2 + 1) & p2) == 0)
@@ -106,7 +106,7 @@ void fft_real_inverse(const TArray<float2> & complex_frequencies, TArray<float> 
   minfft_aux * aux = allocate_fft_aux(fft_real_aux_pointers, p2 * 2, minfft_mkaux_realdft_1d);
   auto realOutSize = p2 * 2;
   if (complex_frequencies.size != realOutSize)
-    builtin_array_resize(real_signal, realOutSize, real_signal.stride, context);
+    builtin_array_resize(real_signal, realOutSize, real_signal.stride, context, at);
 
   minfft_invrealdft((minfft_cmpl *)complex_frequencies.data, (minfft_real *)real_signal.data, aux);
 }

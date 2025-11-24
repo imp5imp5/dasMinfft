@@ -4,7 +4,7 @@
 #include "daScript/ast/ast_interop.h"
 #include "daScript/ast/ast_typefactory_bind.h"
 
-#include "minfft.h"
+#include "dasMinfft.h"
 
 namespace das {
 

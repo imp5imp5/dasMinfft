@@ -30,11 +30,12 @@ IF ((NOT DAS_MINFFT_INCLUDED) AND ((NOT ${DAS_MINFFT_DISABLED}) OR (NOT DEFINED 
 	# MINFFT AOT
 	add_custom_target(MINFFT_AOT)
 	SET(MINFFT_GENERATED_SRC)
-	DAS_AOT("${DAS_MINFFT_DIR}/examples/minfft_example_sinus.das" MINFFT_GENERATED_SRC MINFFT_AOT daslang)
-
-	# daslib
-	DAS_AOT("daslib/random.das" MINFFT_GENERATED_SRC MINFFT_AOT daslang)
-	DAS_AOT("daslib/math_boost.das" MINFFT_GENERATED_SRC MINFFT_AOT daslang)
+	SET(MINFFT_AOT
+		"${DAS_MINFFT_DIR}/examples/minfft_example_sinus.das"
+		"daslib/random.das"
+		"daslib/math_boost.das"
+	)
+	DAS_AOT("${MINFFT_AOT}" MINFFT_GENERATED_SRC MINFFT_AOT daslang)
 	SOURCE_GROUP_FILES("aot stub" MINFFT_GENERATED_SRC)
 
 	# now, the demo

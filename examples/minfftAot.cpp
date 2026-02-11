@@ -57,7 +57,7 @@ int main( int, char * [] ) {
     NEED_ALL_DEFAULT_MODULES;
     NEED_MODULE(Module_UriParser);
     NEED_MODULE(Module_JobQue);
-    #include "modules/external_need.inc"
+    NEED_MODULE(Module_Minfft);
     Module::Initialize();
     application();
     Module::Shutdown();

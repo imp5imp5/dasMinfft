@@ -148,6 +148,7 @@ public:
     }
 };
 
+REGISTER_DYN_MODULE(Module_Minfft,Module_Minfft);
 }
 
 REGISTER_MODULE_IN_NAMESPACE(Module_Minfft, das);

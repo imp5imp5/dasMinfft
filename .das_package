@@ -1,0 +1,30 @@
+options gen2
+
+require daslib/daspkg
+
+[export]
+def package() {
+    package_name("das-minfft")
+    package_author("imp5imp5")
+    package_description("Minimal FFT library bindings for daslang — real/complex FFT, magnitude calculation")
+    package_source("github.com/imp5imp5/dasMinfft")
+    package_license("MIT")
+    package_tag("fft")
+    package_tag("audio")
+    package_tag("signal-processing")
+    package_tag("math")
+}
+
+[export]
+def resolve(sdk_version, version : string) {
+    if (empty(version) || version == "latest") {
+        download_branch("main")
+    } else {
+        download_tag("v{version}")
+    }
+}
+
+[export]
+def build() {
+    cmake_build()
+}

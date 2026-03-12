@@ -1,66 +1,50 @@
+cmake_minimum_required(VERSION 3.16)
+project(dasModuleMinfft C CXX)
 
-IF(NOT DAS_MINFFT_INCLUDED)
-    SET(DAS_MINFFT_INCLUDED TRUE)
-    MESSAGE(STATUS "dasMinfft module included.")
+# DASLANG_DIR must point to the daslang SDK root
+if(NOT DEFINED DASLANG_DIR)
+    message(FATAL_ERROR "DASLANG_DIR must be set to the daslang SDK root")
+endif()
 
-	SET(DAS_MINFFT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-	SET(MINFFT_INCLUDE_DIR ${DAS_MINFFT_DIR}/minfft)
+add_library(dasModuleMinfft SHARED
+    src/dasMinfft.cpp
+    src/dasMinfft.h
+    minfft/minfft.c
+    minfft/minfft.h
+)
 
-    LIST(APPEND CMAKE_MODULE_PATH ${DAS_MINFFT_DIR})
+target_compile_features(dasModuleMinfft PRIVATE cxx_std_17)
+target_compile_definitions(dasModuleMinfft PRIVATE
+    MINFFT_SINGLE
+    DAS_MOD_EXPORTS
+    DAS_ENABLE_DLL=1
+    $<$<CONFIG:Release>:DAS_NO_ASSERTIONS>
+    $<$<CONFIG:MinSizeRel>:DAS_NO_ASSERTIONS>
+    $<$<CONFIG:RelWithDebInfo>:DAS_NO_ASSERTIONS>
+)
 
-	# libDasModuleMinfft
-	SET(DAS_MINFFT_MODULE_SRC
-		${DAS_MINFFT_DIR}/src/dasMinfft.h
-		${DAS_MINFFT_DIR}/src/dasMinfft.cpp
-  	${DAS_MINFFT_DIR}/minfft/minfft.c
-  	${DAS_MINFFT_DIR}/minfft/minfft.h
-	)
+target_include_directories(dasModuleMinfft PRIVATE
+    ${DASLANG_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/minfft
+)
 
-	ADD_MODULE_CPP(Minfft)
-	# ADD_MODULE_NATIVE(MINFFT_boost)
-	ADD_MODULE_LIB(libDasModuleMinfft dasModuleMinfft ${DAS_MINFFT_MODULE_SRC} ${DAS_MINFFT_MODULE_PLATFORM_SRC})
-	MACRO(SETUP_MINFFT lib)
-		target_compile_definitions(${lib} PUBLIC MINFFT_SINGLE)
-		TARGET_LINK_LIBRARIES(${lib} ${MINFFT_LIBRARIES})
-		TARGET_INCLUDE_DIRECTORIES(${lib} PRIVATE ${MINFFT_INCLUDE_DIR})
-	ENDMACRO()
-	SETUP_MINFFT(libDasModuleMinfft)
-	SETUP_MINFFT(dasModuleMinfft)
-
-	SETUP_CPP11(libDasModuleMinfft)
-
-
-	# MINFFT AOT
-	add_custom_target(MINFFT_AOT)
-	SET(MINFFT_GENERATED_SRC)
-	SET(MINFFT_AOT
-		"${DAS_MINFFT_DIR}/examples/minfft_example_sinus.das"
-		"daslib/random.das"
-		"daslib/math_boost.das"
-	)
-	DAS_AOT("${MINFFT_AOT}" MINFFT_GENERATED_SRC MINFFT_AOT daslang)
-	SOURCE_GROUP_FILES("aot stub" MINFFT_GENERATED_SRC)
-
-	# now, the demo
-	SET(MINFFT_SRC
-		${DAS_MINFFT_DIR}/examples/minfftAot.cpp
-		${DAS_MODULES_NEED_INC}
-	)
-	SOURCE_GROUP_FILES("main" MINFFT_SRC)
-	add_executable(minfftAot ${MINFFT_SRC} ${MINFFT_GENERATED_SRC})
-	TARGET_LINK_LIBRARIES(minfftAot libDaScript libDasModuleMinfft Threads::Threads)
-	ADD_DEPENDENCIES(minfftAot libDaScript)
-	ADD_DEPENDENCIES(minfftAot MINFFT_AOT dasAotStub)
-	TARGET_INCLUDE_DIRECTORIES(minfftAot PUBLIC ${MINFFT_INCLUDE_DIR})
-	SETUP_CPP11(minfftAot)
-	SETUP_LTO(minfftAot)
-	ADD_EXAMPLE(minfftAot)
-
-    file(GLOB DAS_MINFFT_EXAMPLES
-		${DAS_MINFFT_DIR}/examples/*.das
+if(WIN32)
+    target_link_libraries(dasModuleMinfft PRIVATE
+        ${DASLANG_DIR}/lib/Release/libDaScriptDyn.lib
     )
-    install(FILES ${DAS_MINFFT_EXAMPLES}
-        DESTINATION ${DAS_INSTALL_EXAMPLESDIR}/minfft
+else()
+    target_link_libraries(dasModuleMinfft PRIVATE
+        ${DASLANG_DIR}/lib/libDaScriptDyn.so
     )
+endif()
 
-ENDIF()
+if(MSVC)
+    target_compile_options(dasModuleMinfft PRIVATE /wd4005)
+endif()
+
+set_target_properties(dasModuleMinfft PROPERTIES
+    SUFFIX ".shared_module"
+    PREFIX ""
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
